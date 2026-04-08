@@ -115,13 +115,23 @@ async def main():
             usdc_ask = float(usdc_ob['asks'][0][0])
             usdc_bid = float(usdc_ob['bids'][0][0])
 
+            # 👇 增加以下 4 行，提取第一档的挂单量
+            usdt_ask_qty = float(usdt_ob['asks'][0][1])
+            usdt_bid_qty = float(usdt_ob['bids'][0][1])
+            usdc_ask_qty = float(usdc_ob['asks'][0][1])
+            usdc_bid_qty = float(usdc_ob['bids'][0][1])
+            
             open_delt  = usdt_ask * open_bp  / 10000
             close_delt = usdt_bid * close_bp / 10000
 
             if current_stage == 'OPEN':
 
                 diff_display = usdc_bid - usdt_ask
-                trigger = usdc_bid > usdt_ask  +  open_delt
+                
+                # 👇 修改这一行，加上档口量的判断
+                volume_ok = (usdt_ask_qty >= amount) and (usdc_bid_qty >= amount)
+                trigger = (usdc_bid > usdt_ask + open_delt) and volume_ok 
+
                 side_usdt, side_usdc = 'buy', 'sell'
                 reduce_only = False
 
@@ -134,7 +144,11 @@ async def main():
 
             elif current_stage == 'CLOSE':
                 diff_display = usdt_bid - usdc_ask
-                trigger = usdt_bid > usdc_ask + close_delt
+                
+                # 👇 修改这一行，加上档口量的判断
+                volume_ok = (usdt_bid_qty >= amount) and (usdc_ask_qty >= amount)
+                trigger = (usdt_bid > usdc_ask + close_delt) and volume_ok
+                
                 side_usdt, side_usdc = 'sell', 'buy'
                 reduce_only = True
 
